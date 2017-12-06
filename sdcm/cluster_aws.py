@@ -331,7 +331,7 @@ class ScyllaAWSCluster(AWSCluster, cluster.BaseScyllaCluster):
         shortid = str(cluster_uuid)[:8]
         name = '%s-%s' % (cluster_prefix, shortid)
         user_data = ('--clustername %s '
-                     '--totalnodes %s' % (name, sum(n_nodes)))
+                     '--totalnodes %s --stop-services' % (name, sum(n_nodes)))
         super(ScyllaAWSCluster, self).__init__(ec2_ami_id=ec2_ami_id,
                                                ec2_subnet_id=ec2_subnet_id,
                                                ec2_security_group_ids=ec2_security_group_ids,
