@@ -66,17 +66,24 @@ class BuildClusterTest(ClusterTester):
             node.wait_db_down()
 
         addresses = {}
+        seeds = []
         for node in self.db_cluster.nodes:
             if hasattr(node._instance, 'public_dns_name'):
                 addresses[node.private_ip_address] = node._instance.public_dns_name
+                if node.is_seed:
+                    seeds.append(node.private_ip_address)
             else:
                 self.log.error("Node instance doesn't have public dns name. "
                                "Please check AMI!")
 
         for node in self.db_cluster.nodes:
-            # for private_ip, public_dns in addresses.iteritems():
-                # replace IPs on public dns names
-            node.remoter.run('sudo sed -i.bak s/{0}/{1}/g /etc/scylla/scylla.yaml'.format(node.private_ip_address, addresses.get(node.private_ip_address,"")))
+            node.remoter.run('sudo sed -i.bak s/{0}/{1}/g /etc/scylla/scylla.yaml'.format(node.private_ip_address,
+                                                                                          addresses.get(
+                                                                                              node.private_ip_address,
+                                                                                              "")))
+            for seed in seeds:
+                node.remoter.run(
+                    'sudo sed -i.bak2 s/{0}/{1}/g /etc/scylla/scylla.yaml'.format(seed, addresses.get(seed, "")))
 
         for node in self.db_cluster.nodes:
             node.remoter.run('sudo systemctl start scylla-server.service')
