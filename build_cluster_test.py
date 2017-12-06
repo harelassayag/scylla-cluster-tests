@@ -86,10 +86,18 @@ class BuildClusterTest(ClusterTester):
                     'sudo sed -i.bak2 s/{0}/{1}/g /etc/scylla/scylla.yaml'.format(seed, addresses.get(seed, "")))
 
         for node in self.db_cluster.nodes:
-            node.remoter.run('sudo systemctl start scylla-server.service')
-            node.remoter.run('sudo systemctl start scylla-jmx.service')
-            node.wait_db_up(timeout=300)
-            node.wait_jmx_up()
+            if node.is_seed:
+                node.remoter.run('sudo systemctl start scylla-server.service')
+                node.remoter.run('sudo systemctl start scylla-jmx.service')
+                node.wait_db_up(timeout=300)
+                node.wait_jmx_up()
+
+        for node in self.db_cluster.nodes:
+            if not node.is_seed:
+                node.remoter.run('sudo systemctl start scylla-server.service')
+                node.remoter.run('sudo systemctl start scylla-jmx.service')
+                node.wait_db_up(timeout=300)
+                node.wait_jmx_up()
 
         base_cmd_w = ("cassandra-stress write no-warmup cl=QUORUM duration=5m "
                       "-schema 'replication(factor=3)' -port jmx=6868 "
