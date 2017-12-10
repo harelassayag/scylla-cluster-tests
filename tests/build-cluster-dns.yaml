@@ -58,6 +58,7 @@ backends: !mux
             ami_db_cassandra_user: 'ubuntu'
             ami_id_monitor: 'ami-29035f52'
             ami_monitor_user: 'centos'
+        stop_services: 'true'
 
 databases: !mux
     cassandra:
