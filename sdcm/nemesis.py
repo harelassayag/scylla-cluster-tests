@@ -769,3 +769,14 @@ class ModifyTableGCGraceTimeMonkey(Nemesis):
     @log_time_elapsed_and_status
     def disrupt(self):
         self.disrupt_modify_table_gc_grace_time()
+
+
+class NoRepairMonkey(Nemesis):
+    @log_time_elapsed_and_status
+    def disrupt(self):
+        disrupt_methods_without_repair = []
+        for attr in inspect.getmembers(self):
+            if attr[0].startswith('disrupt_') and 'repair' not in attr[0] and callable(attr[1]):
+                disrupt_methods_without_repair.append(attr[1])
+
+        self.call_random_disrupt_method(disrupt_methods=disrupt_methods_without_repair)
