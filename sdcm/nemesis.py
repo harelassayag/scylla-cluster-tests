@@ -390,6 +390,13 @@ class Nemesis(object):
         self.metrics_srv.event_stop(disrupt_method_name)
         self.log.info("<<<<<<<<<<<<<Finished random_disrupt_method %s" % disrupt_method_name)
 
+    def call_random_distrupt_method_no_repair(self):
+        disrupt_methods_without_repair = []
+        for attr in inspect.getmembers(self):
+            if attr[0].startswith('disrupt_') and 'repair' not in attr[0] and callable(attr[1]):
+                disrupt_methods_without_repair.append(attr[1])
+        self.call_random_disrupt_method(disrupt_methods=disrupt_methods_without_repair)
+
     def random_order_call_disrupt_methods(self, disrupt_methods=None):
         if not disrupt_methods:
             disrupt_methods = [attr[1] for attr in inspect.getmembers(self) if
@@ -774,9 +781,4 @@ class ModifyTableGCGraceTimeMonkey(Nemesis):
 class NoRepairMonkey(Nemesis):
     @log_time_elapsed_and_status
     def disrupt(self):
-        disrupt_methods_without_repair = []
-        for attr in inspect.getmembers(self):
-            if attr[0].startswith('disrupt_') and 'repair' not in attr[0] and callable(attr[1]):
-                disrupt_methods_without_repair.append(attr[1])
-
-        self.call_random_disrupt_method(disrupt_methods=disrupt_methods_without_repair)
+        self.call_random_distrupt_method_no_repair()
