@@ -33,10 +33,11 @@ class CorruptThenRebuildTest(ClusterTester):
                                               keyspace_num=1)
 
         self.db_cluster.wait_total_space_used_per_node()
-        self.verify_stress_thread(queue=stress_queue)
 
         self.db_cluster.start_nemesis(interval=15)
         self.db_cluster.stop_nemesis(timeout=1000)
+
+        self.verify_stress_thread(queue=stress_queue)
 
         # READ part
         # stress_queue = self.run_stress_thread(stress_cmd=self.params.get('stress_read_cmd'),
