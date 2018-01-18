@@ -20,24 +20,28 @@ from sdcm.nemesis import CorruptThenRebuildMonkey
 
 class CorruptThenRebuildTest(ClusterTester):
     """
-
     :avocado: enable
     """
     def test_corrupt_then_rebuild_nodes(self):
-        for i in range(int(self.params.get('iterations'))):
-            # run a prepare write workload
-            stress_queue = self.run_stress_thread(stress_cmd=self.params.get('prepare_stress_cmd'),
-                                                  stress_num=1,
-                                                  keyspace_num=1)
-            self.get_stress_results(queue=stress_queue)
-            self.db_cluster.add_nemesis(nemesis=CorruptThenRebuildMonkey,
-                                        loaders=self.loaders,
-                                        monitoring_set=self.monitors)
-            self.db_cluster.start_nemesis(interval=15)
-            self.db_cluster.stop_nemesis(timeout=1000)
-            stress_queue = self.run_stress_thread(stress_cmd=self.params.get('stress_read_cmd'),
-                                                  stress_num=2, keyspace_num=1)
-            self.get_stress_results(queue=stress_queue)
+        self.db_cluster.add_nemesis(nemesis=CorruptThenRebuildMonkey,
+                                    loaders=self.loaders,
+                                    monitoring_set=self.monitors)
+
+        # run a prepare write workload
+        stress_queue = self.run_stress_thread(stress_cmd=self.params.get('stress_write_cmd'),
+                                              stress_num=1,
+                                              keyspace_num=1)
+
+        self.db_cluster.wait_total_space_used_per_node()
+        self.verify_stress_thread(queue=stress_queue)
+
+        self.db_cluster.start_nemesis(interval=15)
+        self.db_cluster.stop_nemesis(timeout=1000)
+
+        # READ part
+        # stress_queue = self.run_stress_thread(stress_cmd=self.params.get('stress_read_cmd'),
+        #                                       stress_num=2, keyspace_num=1)
+        # self.get_stress_results(queue=stress_queue)
 
 
 if __name__ == '__main__':
