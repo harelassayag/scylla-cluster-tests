@@ -28,6 +28,8 @@ class CorruptThenRebuildTest(ClusterTester):
         stress_queue = self.run_stress_thread(stress_cmd=self.params.get('stress_write_cmd'),
                                               stress_num=1,
                                               keyspace_num=1)
+        #wait for prepare write to finish
+        self.db_cluster.wait_total_space_used_per_node()
 
         # run rebuild
         nm = nemesis.CorruptThenRebuildMonkey(self.db_cluster, self.loaders, self.monitors, None)
