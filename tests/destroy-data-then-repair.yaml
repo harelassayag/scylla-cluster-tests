@@ -1,0 +1,68 @@
+test_duration: 10080
+stress_write_cmd: ["cassandra-stress write cl=QUORUM duration=96h -schema 'replication(factor=3) compaction(strategy=LeveledCompactionStrategy)' -port jmx=6868 -mode cql3 native -rate threads=500 -col 'size=FIXED(1024) n=FIXED(1)' -pop seq=1..300300300",
+                   "cassandra-stress write cl=QUORUM duration=96h -schema 'replication(factor=3) compaction(strategy=LeveledCompactionStrategy)' -port jmx=6868 -mode cql3 native -rate threads=500 -col 'size=FIXED(1024) n=FIXED(1)' -pop seq=300300300..600600600",
+                   "cassandra-stress write cl=QUORUM duration=96h -schema 'replication(factor=3) compaction(strategy=LeveledCompactionStrategy)' -port jmx=6868 -mode cql3 native -rate threads=500 -col 'size=FIXED(1024) n=FIXED(1)' -pop seq=600600600..900900900",
+                   "cassandra-stress write cl=QUORUM duration=96h -schema 'replication(factor=3) compaction(strategy=LeveledCompactionStrategy)' -port jmx=6868 -mode cql3 native -rate threads=500 -col 'size=FIXED(1024) n=FIXED(1)' -pop seq=900900900..1100200300"]
+stress_read_cmd:  "cassandra-stress read cl=ONE duration=5760m -mode cql3 native -rate threads=10 -col 'size=FIXED(1024) n=FIXED(1)' -pop seq=1..1100200300 -port jmx=6868 -log interval=5"
+n_db_nodes: 3
+n_loaders: 4
+n_monitor_nodes: 1
+nemesis_interval: 15
+user_prefix: 'cases-repair-2-1'
+failure_post_behavior: keep
+# Start after 200GB populated
+space_node_threshold: 209715200000
+ip_ssh_connections: 'private'
+experimental: 'true'
+append_conf: 'enable_sstable_data_integrity_check: true'
+round_robin: 'true'
+
+
+backends: !mux
+    gce: !mux
+        cluster_backend: 'gce'
+        user_credentials_path: '~/.ssh/scylla-test'
+        gce_user_credentials: '~/Scylla-c41b78923a54.json'
+        gce_service_account_email: 'skilled-adapter-452@appspot.gserviceaccount.com'
+        gce_project: 'skilled-adapter-452'
+        gce_network: 'qa-vpc'
+        gce_image: 'https://www.googleapis.com/compute/v1/projects/centos-cloud/global/images/family/centos-7'
+        gce_image_username: 'scylla-test'
+        gce_instance_type_db: 'n1-highmem-16'
+        gce_root_disk_type_db: 'pd-ssd'
+        gce_root_disk_size_db: 50
+        gce_n_local_ssd_disk_db: 8
+        gce_instance_type_loader: 'n1-standard-4'
+        gce_root_disk_type_loader: 'pd-standard'
+        gce_n_local_ssd_disk_loader: 0
+        gce_instance_type_monitor: 'n1-standard-2'
+        gce_root_disk_type_monitor: 'pd-standard'
+        gce_root_disk_size_monitor: 50
+        gce_n_local_ssd_disk_monitor: 0
+        scylla_repo: 'https://s3.amazonaws.com/downloads.scylladb.com/rpm/unstable/centos/d96c31ee4dd007d366fd9bf678c2541269ed0d4d-270718d79f5ee93b366554dcd2c6e20b1c651b52-8efa88d932c70d37da63afc704560854b5d52ef9/54/scylla.repo'
+        us_east_1:
+          gce_datacenter: 'us-east1-b'
+    aws: !mux
+        cluster_backend: 'aws'
+        instance_type_loader: 'c4.4xlarge'
+        instance_type_monitor: 'c4.2xlarge'
+        us_east_1:
+            region_name: 'us-east-1'
+            security_group_ids: 'sg-c5e1f7a0'
+            subnet_id: 'subnet-d934e980'
+            ami_id_db_scylla: 'ami-29035f52'
+            ami_db_scylla_user: 'centos'
+            ami_id_loader: 'ami-29035f52'
+            ami_loader_user: 'centos'
+            ami_id_db_cassandra: 'ami-3eff0028'
+            ami_db_cassandra_user: 'ubuntu'
+            ami_id_monitor: 'ami-29035f52'
+            ami_monitor_user: 'centos'
+
+databases: !mux
+    cassandra:
+        db_type: cassandra
+        instance_type_db: 'm3.large'
+    scylla:
+        db_type: scylla
+        instance_type_db: 'i2.4xlarge'
