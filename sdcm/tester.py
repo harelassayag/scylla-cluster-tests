@@ -73,7 +73,6 @@ TEST_LOG = logging.getLogger('avocado.test')
 
 
 class FlakyRetryPolicy(RetryPolicy):
-
     """
     A retry policy that retries 5 times
     """
@@ -126,6 +125,7 @@ def clean_aws_resources(method):
     :param method: ScyllaClusterTester method to wrap.
     :return: Wrapped method.
     """
+
     def wrapper(*args, **kwargs):
         try:
             return method(*args, **kwargs)
@@ -133,6 +133,7 @@ def clean_aws_resources(method):
             TEST_LOG.exception('Exception in wrapped method %s', method.__name__)
             args[0].clean_resources()
             raise
+
     return wrapper
 
 
@@ -178,10 +179,10 @@ def get_stress_cmd_params(cmd):
                 cmd_params['rate threads'] = \
                     re.search('(threads\s?=\s?(\w+))', cmd_params['rate']).group(2)
             if 'throttle' in cmd_params['rate']:
-                cmd_params['throttle threads'] =\
+                cmd_params['throttle threads'] = \
                     re.search('(throttle\s?=\s?(\w+))', cmd_params['rate']).group(2)
             if 'fixed' in cmd_params['rate']:
-                cmd_params['fixed threads'] =\
+                cmd_params['fixed threads'] = \
                     re.search('(fixed\s?=\s?(\w+))', cmd_params['rate']).group(2)
             del cmd_params['rate']
 
@@ -737,9 +738,8 @@ class ClusterTester(Test):
         timeout = duration * 60 + 600
         self.update_bench_stress_cmd_details(stress_cmd)
         return self.loaders.run_stress_thread_bench(stress_cmd, timeout,
-                                              self.outputdir,
-                                              node_list=self.db_cluster.nodes)
-
+                                                    self.outputdir,
+                                                    node_list=self.db_cluster.nodes)
 
     @clean_aws_resources
     def kill_stress_thread(self):
@@ -1105,7 +1105,7 @@ class ClusterTester(Test):
             self.stats['test_details'][section] = [] if self.create_stats else {}
         cmd_params = get_stress_cmd_params(cmd)
         if cmd_params:
-            self.stats['test_details'][section].append(cmd_params) if self.create_stats else\
+            self.stats['test_details'][section].append(cmd_params) if self.create_stats else \
                 self.stats['test_details'][section].update(cmd_params)
             self.update_test_stats(dict(test_details=self.stats['test_details']))
 
@@ -1115,7 +1115,7 @@ class ClusterTester(Test):
             self.stats['test_details'][section] = [] if self.create_stats else {}
         cmd_params = get_stress_bench_cmd_params(cmd)
         if cmd_params:
-            self.stats['test_details'][section].append(cmd_params) if self.create_stats else\
+            self.stats['test_details'][section].append(cmd_params) if self.create_stats else \
                 self.stats['test_details'][section].update(cmd_params)
             self.update_test_stats(dict(test_details=self.stats['test_details']))
 
@@ -1197,10 +1197,12 @@ class ClusterTester(Test):
         except Exception as ex:
             self.log.exception('Failed to check regression: %s', ex)
 
-    def populate_data_parallel(self, size_in_gb, blocking=True):
+    def populate_data_parallel(self, size_in_gb, blocking=True, read=False):
         base_cmd = "cassandra-stress write cl=QUORUM "
+        if read:
+            base_cmd = "cassandra-stress read cl=ONE "
         stress_fixed_params = " -schema 'replication(factor=3) compaction(strategy=LeveledCompactionStrategy)' " \
-                              "-port jmx=6868 -mode cql3 native -rate threads=200 -col 'size=FIXED(1024) n=FIXED(1)' "
+                              "-port jmx=6868 -mode cql3 native -rate threads=5 -col 'size=FIXED(1024) n=FIXED(1)' "
         stress_keys = "n="
         population = " -pop seq="
 

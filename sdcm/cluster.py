@@ -1507,6 +1507,7 @@ class BaseScyllaCluster(object):
         """
         tcpdump = self.params.get('tcpdump')
         cfstats = [node.get_cfstats(tcpdump)[key] for node in self.nodes]
+        self.log.debug("c (total) on all nodes: %s" % cfstats)
         reached_threshold = True
         for value in cfstats:
             if value < threshold:

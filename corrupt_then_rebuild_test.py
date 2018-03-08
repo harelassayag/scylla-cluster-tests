@@ -25,9 +25,9 @@ class CorruptThenRebuildTest(ClusterTester):
 
     def test_corrupt_then_rebuild_nodes(self):
         # populates 100GB
-        write_queue = self.populate_data_parallel(100, blocking=False)
+        write_queue = self.populate_data_parallel(15, blocking=False)
 
-        self.db_cluster.wait_total_space_used_per_node(50 * (1024 ** 3))  # calculates 50gb in bytes
+        self.db_cluster.wait_total_space_used_per_node(7 * (1024 ** 3))  # calculates 50gb in bytes
 
         # run rebuild
         current_nemesis = nemesis.CorruptThenRebuildMonkey(self.db_cluster, self.loaders, self.monitors, None)
@@ -35,6 +35,7 @@ class CorruptThenRebuildTest(ClusterTester):
 
         for stress in write_queue:
             self.verify_stress_thread(queue=stress)
+        self.populate_data_parallel(15, blocking=False, read=True)
 
 
 if __name__ == '__main__':
