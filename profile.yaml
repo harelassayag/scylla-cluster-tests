@@ -1,0 +1,40 @@
+keyspace: test1
+keyspace_definition: |
+ CREATE KEYSPACE test1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '2'}  AND durable_writes = true;
+table: device_20171121
+table_definition: |
+  CREATE TABLE device_20171121 (
+        tdid text,
+        datatime int,
+        features text,
+        PRIMARY KEY (tdid, datatime)
+  ) WITH CLUSTERING ORDER BY (datatime DESC)
+   AND bloom_filter_fp_chance = 0.01
+   AND caching = {'keys': 'ALL','rows_per_partition': 'ALL'}
+   AND comment = ''
+   AND compaction = {'class': 'SizeTieredCompactionStrategy'}
+   AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+   AND dclocal_read_repair_chance = 0.1
+   AND default_time_to_live = 604800
+   AND gc_grace_seconds = 0
+   AND max_index_interval = 2048
+   AND memtable_flush_period_in_ms = 0
+   AND min_index_interval = 128
+   AND speculative_retry = '99.0PERCENTILE';
+columnspec:
+  - name: tdid
+    size: fixed(32)
+    population: uniform(1..10000000000)
+  - name: datatime
+    size: fixed(18)
+    cluster: uniform(1..100)
+  - name: features
+    size: gaussian(1000..10000)
+insert:
+  partitions: fixed(1)
+  batchtype: UNLOGGED
+  select: fixed(10)/1000
+queries:
+  events:
+   cql: select * from device_20171121 where tdid = ? limit 1
+   fields: samerow
