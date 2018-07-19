@@ -965,20 +965,19 @@ client_encryption_options:
         self.remoter.send_files(src=self._ssh_login_info['key_file'], dst=rsa_id_dst)
         self.remoter.run('sudo chmod 0400 {}'.format(rsa_id_dst))
         self.remoter.run('sudo chown {}:{} {}'.format(mgmt_user, mgmt_user, rsa_id_dst))
-
-        mgmt_conf = {'http': '0.0.0.0:{}'.format(mgmt_port),
-                     'database':
-                         {'hosts': db_hosts,
-                          'timeout': '5s'},
-                     'ssh':
-                         {'user': self._ssh_login_info['user'],
-                          'identity_file': rsa_id_dst}
-                     }
-        (_, conf_file) = tempfile.mkstemp(dir='/tmp')
-        with open(conf_file, 'w') as fd:
-            yaml.dump(mgmt_conf, fd, default_flow_style=False)
-        self.remoter.send_files(src=conf_file, dst=mgmt_conf_tmp)
-        self.remoter.run('sudo cp {} {}'.format(mgmt_conf_tmp, mgmt_conf_dst))
+        # mgmt_conf = {'http': '0.0.0.0:{}'.format(mgmt_port),
+        #              'database':
+        #                  {'hosts': db_hosts,
+        #                   'timeout': '5s'},
+        #              'ssh':
+        #                  {'user': self._ssh_login_info['user'],
+        #                   'identity_file': rsa_id_dst}
+        #              }
+        # (_, conf_file) = tempfile.mkstemp(dir='/tmp')
+        # with open(conf_file, 'w') as fd:
+        #     yaml.dump(mgmt_conf, fd, default_flow_style=False)
+        # self.remoter.send_files(src=conf_file, dst=mgmt_conf_tmp)
+        # self.remoter.run('sudo cp {} {}'.format(mgmt_conf_tmp, mgmt_conf_dst))
         if self.is_docker():
             self.remoter.run('sudo supervisorctl start scylla-manager')
         else:
